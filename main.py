@@ -55,6 +55,7 @@ def nocomment():
         line = line.split("#",1)
         print(line[0])
         change = change + str(line[0])
+        print(change)
 
 
     inFile.close()
