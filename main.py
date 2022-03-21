@@ -22,29 +22,36 @@ def open_file():
     global file_name
     file = askopenfile(mode='r')
     file_name = os.path.basename(file.name)
+    os.system("echo Hello from the other side!")
+
 
     if file is not None:
-        content = file.read()
+        if file_name.__contains__(".apk"):
+            print(file)
+            apk_decompile(file.name)
+        else:
+            content = file.read()
+            with open(f'data_files/{file_name}', 'w') as f:
+                f.write(content)
+                f.close()
 
-        with open(f'data_files/{file_name}', 'w') as f:
-            f.write(content)
-            f.close()
+        loaded = Label(window, text=f"{file_name} is loaded")
+        loaded.config(anchor=CENTER)
+        loaded.pack()
 
-    loaded = Label(window, text=f"{file_name} is loaded")
-    loaded.config(anchor=CENTER)
-    loaded.pack()
+# decompile apk
+def apk_decompile(apk_file):
+    apk_name = os.path.basename(apk_file)
+    os.system("java -jar tools/apktool.jar d -f " + apk_file + " -o output/" + apk_name)
 
 
+
+
+
+
+# -------------------- Obfuscation Part --------------------
 def obfuscate_file():
     return None
-
-
-def apktorar():
-    apk = askopenfile(filetypes=[("apk", "*.apk")])
-    a = os.path.basename(apk.name)
-    base = os.path.splitext(a)[0]
-    # rar = os.rename(a, base + ".rar")
-    print(base)
 
 
 def nocomment():
@@ -63,6 +70,10 @@ def nocomment():
     outFile.write(change)
     outFile.close()
 
+
+
+
+# -------------------- GUI Window --------------------
 btn = Button(window, text='Open', command=lambda: open_file())
 btn2 = Button(window, text='Remove Comments', command=lambda: nocomment())
 # btn2 = Button(window, text='Save', command=lambda: apktorar())
