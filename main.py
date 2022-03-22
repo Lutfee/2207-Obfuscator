@@ -138,17 +138,16 @@ def nocomment(inFile):
     outFile.close()
 
 def addjunkcode(smaliCode):
-    randint = random.randint(1, 10)
     flag1 = 0
     flag2 = 0
     functionNameFirst = ["important_", "necessary_", "mustHave_", "coolCool_"]
     functionNameSecond = ["function()", "statement()", "detail()", "coolStuff()"]
     counter = 0
     saltNOP = "nop\n"
-    saltGOTO = "goto : gogo_\n" + str(counter)
     saltFUNCTIONback = ".end method\n"
     iterator = 0
 
+    # [ Function Salting ]
     with open(smaliCode, "r") as fp:
         lines = fp.readlines()
         while iterator < len(lines):
@@ -175,15 +174,35 @@ def addjunkcode(smaliCode):
     f.writelines(lines)
     f.close()
 
-    #reset iterator
+    # reset iterator [ Salt with NOP ]
     iterator = 0
     with open(smaliCode, "r") as fp:
         lines = fp.readlines()
         while iterator < len(lines):
             if ".method" in lines[iterator]:
+                randint = random.randint(3, 5)
                 for i in range(1,randint):
                     lines.insert(iterator + i, saltNOP)
                 iterator += 1
+            iterator += 1
+    f = open(smaliCode, "w")
+    f.writelines(lines)
+    f.close()
+
+    # reset iterator [ Salt with goto junk ]
+    iterator = 0
+    with open(smaliCode, "r") as fp:
+        lines = fp.readlines()
+        while iterator < len(lines):
+            if "nop" in lines[iterator]:
+                anotherRand = random.randint(1, 3)
+                for i in range(0 ,anotherRand):
+                    saltGOTOfront = "goto : gogo_" + str(counter) + "\n"
+                    saltGOTOback = ": gogo_" + str(counter) + "\n"
+                    lines.insert(iterator + i, saltGOTOfront)
+                    lines.insert(iterator + 1 + i, saltGOTOback)
+                    counter += 1
+                    iterator += 2
             iterator += 1
     f = open(smaliCode, "w")
     f.writelines(lines)
