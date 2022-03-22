@@ -2,23 +2,25 @@
 # and all their functions and classes
 import os
 import re
+import subprocess
+from subprocess import Popen, PIPE
+from pathlib import Path
 from tkinter import *
 # importing askopenfile function
 # from class filedialog
 from tkinter.filedialog import askopenfile
 from tkinter.ttk import *
-from pathlib import Path
 
-#----------- Global Var -----------
+# ----------- Global Var -----------
 content = ""
 file_name = ""
+file_path = ""
 main_smali_file_path = ""
 
 window = Tk()
-window.geometry('480x480')
+window.title("Simple Obfuscator")
+window.geometry('480x300')
 window.config(background="light blue")
-progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
-progress.pack(pady=20)
 
 
 # This function will be used to open
@@ -27,14 +29,17 @@ progress.pack(pady=20)
 def open_file():
     global content
     global file_name
+    global file_path
 
     file = askopenfile(mode='r')
     progress["value"] += 20
     window.update_idletasks()
     file_name = os.path.basename(file.name)
+    file_path = file.name
+
 
     loaded = Label(window, text=f"{file_name} is loaded")
-    loaded.config(anchor=CENTER)
+    loaded.config(anchor="s")
     loaded.pack()
 
     if file is not None:
@@ -59,21 +64,29 @@ def open_file():
 def apk_decompile(apk_file):
     progress["value"] += 20
     apk_name = os.path.basename(apk_file)
-    os.system("java -jar tools/apktool.jar d -f " + apk_file + " -o output/" + apk_name)
+    os.system(f"java -jar tools/apktool.jar d -f {apk_file} -o output/{apk_name}")
 
-    loaded = Label(window, text=f"{file_name} successfully decompiled")
+    loaded = Label(window, text=f"{file_name} successfully decompiled at output/{apk_name}")
     loaded.config(anchor=CENTER)
     loaded.pack()
     progress["value"] += 40
     window.update_idletasks()
 
 
+# recompile and sign apk
+def apk_recompile_sign(apk_file):
+    apk_name = os.path.basename(apk_file)
+    os.system(f"java -jar tools/apktool.jar b -f -d output/{apk_file} -o data_files/obfuscated_apk/{apk_name}")
+    subprocess.call(f"jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass password -keystore tools/test.keystore data_files/obfuscated_apk/{apk_name} test")
+
+
+
 # -------------------- Obfuscation Part --------------------
 def obfuscate_smali_file():
     global main_smali_file_path
     folder = os.listdir(f"output/{file_name}")
-    print('folder',folder)
-    initial_count = 0
+    print('folder', folder)
+    count = 0
 
     substring = "smali"
     substring2 = "example"
@@ -91,21 +104,12 @@ def obfuscate_smali_file():
                     for z in sub_fx:
                         main_smali_file_path = f"output/{file_name}/{i}/com/{x}/{z}"
                         for e in Path().cwd().glob(f"{main_smali_file_path}/*.smali"):
+                            count += 1
                             print(e)
                             nocomment(e)
-
-
-
-    print
-    "All files ending with .py in folder %s:" % folder
-
-
-    for f in Path().cwd().glob("../*.smali"):
-        print(f)
-        # do other stuff
-
-
-
+    loaded = Label(window, text=f"{count} Smali file obfuscated!")
+    loaded.config(anchor=CENTER)
+    loaded.pack()
 
 def nocomment(inFile):
     print(inFile)
@@ -120,33 +124,25 @@ def nocomment(inFile):
         print(change)
 
     open_file.close()
-    outFile = open(f"data_files/obfuscated_files/{basename}", "w")
+    outFile = open(inFile, "w")
+    #outFile = open(f"data_files/{basename}", "w")
     outFile.write(change)
     outFile.close()
 
+
 def test():
-    rootDir = 'output'
-    for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
-        print('Found directory: %s' % dirName)
-        if "smali" in dirName:
-            print("yes")
-    for fname in fileList:
-        print('\t%s' % fname)
-
-        # List all files and directories in the specified path
-        print("Files and Directories in '% s':" % folder)
-        for entry in obj:
-            if entry.is_dir() or entry.is_file():
-                print(entry.name)
-                if entry.name == "smali":
-                    for next in entry:
-                        print(next)
 
 
+    return None
 
 # -------------------- GUI Window --------------------
-btn = Button(window, text='Open', command=lambda: open_file()).pack(side=TOP, pady=10)
-btn2 = Button(window, text='Remove Comments', command=lambda: nocomment()).pack(side=TOP, pady=10)
-btn3 = Button(window, text='Save', command=lambda: obfuscate_smali_file()).pack(side=TOP, pady=10)
+
+btn = Button(window, text='Step 1: Open & Decompile', command=lambda: open_file()).pack(side=TOP, pady=10)
+#btn2 = Button(window, text='Remove Comments', command=lambda: nocomment()).pack(side=TOP, pady=10)
+btn3 = Button(window, text='Step 2: Obfuscate Smali', command=lambda: obfuscate_smali_file()).pack(side=TOP, pady=10)
+btn4 = Button(window, text='Step 3: Recompile', command=lambda: apk_recompile_sign(file_name)).pack(side=TOP, pady=10)
+
+progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
+progress.pack(pady=20)
 
 window.mainloop()
