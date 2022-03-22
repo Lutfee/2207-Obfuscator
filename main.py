@@ -3,6 +3,7 @@
 import os
 import re
 import subprocess
+import time
 from subprocess import Popen, PIPE
 from pathlib import Path
 from tkinter import *
@@ -64,7 +65,7 @@ def open_file():
 def apk_decompile(apk_file):
     progress["value"] += 20
     apk_name = os.path.basename(apk_file)
-    os.system(f"java -jar tools/apktool.jar d -f {apk_file} -o output/{apk_name}")
+    os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o output/{apk_name}")
 
     loaded = Label(window, text=f"{file_name} successfully decompiled at output/{apk_name}")
     loaded.config(anchor=CENTER)
@@ -76,7 +77,8 @@ def apk_decompile(apk_file):
 # recompile and sign apk
 def apk_recompile_sign(apk_file):
     apk_name = os.path.basename(apk_file)
-    os.system(f"java -jar tools/apktool.jar b -f -d output/{apk_file} -o data_files/obfuscated_apk/{apk_name}")
+    subprocess.call(f"java -jar tools/apktool.jar b -f -r --use-aapt2 output/{apk_file} -o data_files/obfuscated_apk/{apk_name}")
+    time.sleep(3)
     subprocess.call(f"jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass password -keystore tools/test.keystore data_files/obfuscated_apk/{apk_name} test")
 
 
@@ -118,10 +120,14 @@ def nocomment(inFile):
     change = ""
 
     for line in open_file:
-        line = line.split("#", 1)
-        print(line[0])
-        change = change + str(line[0])
-        print(change)
+        result = re.findall(r'"(.*#.*)"', line)
+        if not result:
+            line = line.split("#", 1)
+            print(line[0])
+            change = change + str(line[0])
+            print(change)
+        else:
+            change = change + line
 
     open_file.close()
     outFile = open(inFile, "w")
