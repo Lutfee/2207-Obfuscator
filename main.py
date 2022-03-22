@@ -143,7 +143,7 @@ def addjunkcode(smaliCode):
     functionNameFirst = ["important_", "necessary_", "mustHave_", "coolCool_"]
     functionNameSecond = ["function()", "statement()", "detail()", "coolStuff()"]
     counter = 0
-    saltNOP = "nop\n"
+    saltNOP = "nop\n\n"
     saltFUNCTIONback = ".end method\n"
     iterator = 0
 
@@ -198,7 +198,7 @@ def addjunkcode(smaliCode):
                 anotherRand = random.randint(1, 3)
                 for i in range(0 ,anotherRand):
                     saltGOTOfront = "goto : gogo_" + str(counter) + "\n"
-                    saltGOTOback = ": gogo_" + str(counter) + "\n"
+                    saltGOTOback = ": gogo_" + str(counter) + "\n\n"
                     lines.insert(iterator + i, saltGOTOfront)
                     lines.insert(iterator + 1 + i, saltGOTOback)
                     counter += 1
