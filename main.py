@@ -66,6 +66,7 @@ def open_file():
 def apk_decompile(apk_file):
     progress["value"] += 20
     apk_name = os.path.basename(apk_file)
+    os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o original_apk/{apk_name}")
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o output/{apk_name}")
 
     loaded = Label(window, text=f"{file_name} successfully decompiled at output/{apk_name}")
@@ -120,9 +121,10 @@ def nocomment(inFile):
     open_file = open(inFile, "r")
     basename = os.path.basename(inFile)
     change = ""
+    regex = r'"(.*#.*)"'
 
     for line in open_file:
-        result = re.findall(r'"(.*#.*)"', line)
+        result = re.findall(regex, line)
         if not result:
             line = line.split("#", 1)
             print(line[0])
