@@ -135,6 +135,39 @@ def nocomment(inFile):
     outFile.write(change)
     outFile.close()
 
+#THIS DOESNT WORK YET IM JUST WRITING STUFF
+def addjunkcode(smaliCode):
+    flag1 = 0
+    flag2 = 0
+    functionNameFirst = ["important_", "necessary_", "mustHave_", "coolCool_"]
+    functionNameSecond = ["function()", "statement()", "detail()", "coolStuff()"]
+    counter = 0
+    saltNOP = "nop"
+    saltGOTO = "goto : gogo_" + str(counter)
+    saltFUNCTION = ".method public " + functionNameFirst[flag1] + functionNameSecond[flag2] + "Z\n" + ".end method\n"
+    check = False
+
+    with open(smaliCode, "r+") as fp:
+        lines = fp.readlines()
+        for i in range(0, len(lines)):
+            if lines[i].__contains__(".end method"):
+                lines.insert(i + 1, saltFUNCTION)
+                check = True
+
+
+    print(check)
+
+
+
+
+def test():
+    rootDir = 'output'
+    for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
+        print('Found directory: %s' % dirName)
+        if "smali" in dirName:
+            print("yes")
+    for fname in fileList:
+        print('\t%s' % fname)
 
 def test():
 
