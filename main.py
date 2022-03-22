@@ -145,6 +145,7 @@ def addjunkcode(smaliCode):
     counter = 0
     saltNOP = "nop\n\n"
     saltFUNCTIONback = ".end method\n"
+    saltFUNCTIONlocal = ".locals 0\n"
     iterator = 0
 
     # [ Function Salting ]
@@ -155,17 +156,20 @@ def addjunkcode(smaliCode):
                 saltFUNCTIONfront = "\n.method public " + functionNameFirst[flag1] + functionNameSecond[flag2] + "Z\n"
                 if flag1 != 3 and flag2 != 3:
                     lines.insert(iterator + 1, saltFUNCTIONfront)
-                    lines.insert(iterator + 2, saltFUNCTIONback)
-                    iterator += 3
+                    lines.insert(iterator + 2, saltFUNCTIONlocal)
+                    lines.insert(iterator + 3, saltFUNCTIONback)
+                    iterator += 4
                     flag2 += 1
                 elif flag1 != 3 and flag2 == 3:
                     flag1 += 1
                     flag2 = 0
                     lines.insert(iterator + 1, saltFUNCTIONfront)
-                    lines.insert(iterator + 2, saltFUNCTIONback)
+                    lines.insert(iterator + 2, saltFUNCTIONlocal)
+                    lines.insert(iterator + 3, saltFUNCTIONback)
                 elif flag1 == 3 and flag2 < 3:
                     lines.insert(iterator + 1, saltFUNCTIONfront)
-                    lines.insert(iterator + 2, saltFUNCTIONback)
+                    lines.insert(iterator + 2, saltFUNCTIONlocal)
+                    lines.insert(iterator + 3, saltFUNCTIONback)
                     flag2 += 1
                 elif flag1 == 3 and flag2 == 3:
                     break
