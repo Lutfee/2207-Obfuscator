@@ -1,6 +1,7 @@
 # importing tkinter and tkinter.ttk
 # and all their functions and classes
 import os
+import random
 import re
 import subprocess
 import time
@@ -107,8 +108,9 @@ def obfuscate_smali_file():
                         main_smali_file_path = f"output/{file_name}/{i}/com/{x}/{z}"
                         for e in Path().cwd().glob(f"{main_smali_file_path}/*.smali"):
                             count += 1
-                            print(e)
+                            #print(e)
                             nocomment(e)
+                            addjunkcode(e)
     loaded = Label(window, text=f"{count} Smali file obfuscated!")
     loaded.config(anchor=CENTER)
     loaded.pack()
@@ -135,30 +137,57 @@ def nocomment(inFile):
     outFile.write(change)
     outFile.close()
 
-#THIS DOESNT WORK YET IM JUST WRITING STUFF
 def addjunkcode(smaliCode):
+    randint = random.randint(1, 10)
     flag1 = 0
     flag2 = 0
     functionNameFirst = ["important_", "necessary_", "mustHave_", "coolCool_"]
     functionNameSecond = ["function()", "statement()", "detail()", "coolStuff()"]
     counter = 0
-    saltNOP = "nop"
-    saltGOTO = "goto : gogo_" + str(counter)
-    saltFUNCTION = ".method public " + functionNameFirst[flag1] + functionNameSecond[flag2] + "Z\n" + ".end method\n"
-    check = False
+    saltNOP = "nop\n"
+    saltGOTO = "goto : gogo_\n" + str(counter)
+    saltFUNCTIONback = ".end method\n"
+    iterator = 0
 
-    with open(smaliCode, "r+") as fp:
+    with open(smaliCode, "r") as fp:
         lines = fp.readlines()
-        for i in range(0, len(lines)):
-            if lines[i].__contains__(".end method"):
-                lines.insert(i + 1, saltFUNCTION)
-                check = True
+        while iterator < len(lines):
+            if lines[iterator] == ".end method\n":
+                saltFUNCTIONfront = "\n.method public " + functionNameFirst[flag1] + functionNameSecond[flag2] + "Z\n"
+                if flag1 != 3 and flag2 != 3:
+                    lines.insert(iterator + 1, saltFUNCTIONfront)
+                    lines.insert(iterator + 2, saltFUNCTIONback)
+                    iterator += 3
+                    flag2 += 1
+                elif flag1 != 3 and flag2 == 3:
+                    flag1 += 1
+                    flag2 = 0
+                    lines.insert(iterator + 1, saltFUNCTIONfront)
+                    lines.insert(iterator + 2, saltFUNCTIONback)
+                elif flag1 == 3 and flag2 < 3:
+                    lines.insert(iterator + 1, saltFUNCTIONfront)
+                    lines.insert(iterator + 2, saltFUNCTIONback)
+                    flag2 += 1
+                elif flag1 == 3 and flag2 == 3:
+                    break
+            iterator += 1
+    f = open(smaliCode, "w")
+    f.writelines(lines)
+    f.close()
 
-
-    print(check)
-
-
-
+    #reset iterator
+    iterator = 0
+    with open(smaliCode, "r") as fp:
+        lines = fp.readlines()
+        while iterator < len(lines):
+            if ".method" in lines[iterator]:
+                for i in range(1,randint):
+                    lines.insert(iterator + i, saltNOP)
+                iterator += 1
+            iterator += 1
+    f = open(smaliCode, "w")
+    f.writelines(lines)
+    f.close()
 
 def test():
     rootDir = 'output'
