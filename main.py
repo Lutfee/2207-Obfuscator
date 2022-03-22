@@ -113,7 +113,7 @@ def obfuscate_smali_file():
                             count += 1
                             #print(e)
                             nocomment(e)
-                            addjunkcode(e)
+                            #addjunkcode(e)
     loaded = Label(window, text=f"{count} Smali file obfuscated!")
     loaded.config(anchor=CENTER)
     loaded.pack()
