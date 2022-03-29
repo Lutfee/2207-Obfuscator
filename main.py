@@ -113,7 +113,7 @@ def obfuscate_smali_file():
                             count += 1
                             #print(e)
                             nocomment(e)
-                            #addjunkcode(e)
+                            addjunkcode(e)
     loaded = Label(window, text=f"{count} Smali file obfuscated!")
     loaded.config(anchor=CENTER)
     loaded.pack()
@@ -150,30 +150,36 @@ def addjunkcode(smaliCode):
     saltNOP = "nop\n\n"
     saltFUNCTIONback = ".end method\n"
     saltFUNCTIONlocal = ".locals 0\n"
+    saltFUNCTIONreturn = "return-void\n"
     iterator = 0
 
-    # [ Function Salting ]
+    #[ Function Salting ]
     with open(smaliCode, "r") as fp:
         lines = fp.readlines()
         while iterator < len(lines):
             if lines[iterator] == ".end method\n":
-                saltFUNCTIONfront = "\n.method public " + functionNameFirst[flag1] + functionNameSecond[flag2] + "Z\n"
+                saltFUNCTIONfront = "\n.method public " + functionNameFirst[flag1] + functionNameSecond[flag2] + "\n"
                 if flag1 != 3 and flag2 != 3:
                     lines.insert(iterator + 1, saltFUNCTIONfront)
                     lines.insert(iterator + 2, saltFUNCTIONlocal)
-                    lines.insert(iterator + 3, saltFUNCTIONback)
-                    iterator += 4
+                    lines.insert(iterator + 3, saltFUNCTIONreturn)
+                    lines.insert(iterator + 4, saltFUNCTIONback)
+                    iterator += 5
                     flag2 += 1
                 elif flag1 != 3 and flag2 == 3:
                     flag1 += 1
                     flag2 = 0
                     lines.insert(iterator + 1, saltFUNCTIONfront)
                     lines.insert(iterator + 2, saltFUNCTIONlocal)
-                    lines.insert(iterator + 3, saltFUNCTIONback)
+                    lines.insert(iterator + 3, saltFUNCTIONreturn)
+                    lines.insert(iterator + 4, saltFUNCTIONback)
+                    iterator += 5
                 elif flag1 == 3 and flag2 < 3:
                     lines.insert(iterator + 1, saltFUNCTIONfront)
                     lines.insert(iterator + 2, saltFUNCTIONlocal)
-                    lines.insert(iterator + 3, saltFUNCTIONback)
+                    lines.insert(iterator + 3, saltFUNCTIONreturn)
+                    lines.insert(iterator + 4, saltFUNCTIONback)
+                    iterator += 5
                     flag2 += 1
                 elif flag1 == 3 and flag2 == 3:
                     break
@@ -188,7 +194,7 @@ def addjunkcode(smaliCode):
         lines = fp.readlines()
         while iterator < len(lines):
             if ".method" in lines[iterator]:
-                randint = random.randint(3, 5)
+                randint = random.randint(3, 10)
                 for i in range(1,randint):
                     lines.insert(iterator + i, saltNOP)
                 iterator += 1
@@ -203,7 +209,7 @@ def addjunkcode(smaliCode):
         lines = fp.readlines()
         while iterator < len(lines):
             if "nop" in lines[iterator]:
-                anotherRand = random.randint(1, 3)
+                anotherRand = random.randint(1, 10)
                 for i in range(0 ,anotherRand):
                     saltGOTOfront = "goto : gogo_" + str(counter) + "\n"
                     saltGOTOback = ": gogo_" + str(counter) + "\n\n"
