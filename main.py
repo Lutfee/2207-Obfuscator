@@ -194,7 +194,7 @@ def addjunkcode(smaliCode):
         lines = fp.readlines()
         while iterator < len(lines):
             if ".method" in lines[iterator]:
-                randint = random.randint(3, 10)
+                randint = random.randint(3, 5)
                 for i in range(1,randint):
                     lines.insert(iterator + i, saltNOP)
                 iterator += 1
@@ -209,7 +209,7 @@ def addjunkcode(smaliCode):
         lines = fp.readlines()
         while iterator < len(lines):
             if "nop" in lines[iterator]:
-                anotherRand = random.randint(1, 10)
+                anotherRand = random.randint(1, 3)
                 for i in range(0 ,anotherRand):
                     saltGOTOfront = "goto : gogo_" + str(counter) + "\n"
                     saltGOTOback = ": gogo_" + str(counter) + "\n\n"
