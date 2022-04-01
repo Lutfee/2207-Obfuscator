@@ -6,14 +6,12 @@ import re
 import subprocess
 import time
 from glob import glob
-from subprocess import Popen, PIPE
 from pathlib import Path
 from tkinter import *
 # importing askopenfile function
 # from class filedialog
 from tkinter.filedialog import askopenfile
 from tkinter.ttk import *
-
 
 # ----------- Global Var -----------
 content = ""
@@ -44,9 +42,6 @@ progress.pack(pady=20)
 textLog = Text(window, width=40, height=40)
 
 
-
-
-
 # This function will be used to open
 # file in read mode and only Python files
 # will be opened
@@ -55,12 +50,11 @@ def open_file():
     global file_name
     global file_path
 
-    #clear logs
+    # clear logs
 
     file = askopenfile(mode='r')
-    #pogBar(progress)
-    #progress["value"] += 20
-
+    # pogBar(progress)
+    # progress["value"] += 20
 
     window.update_idletasks()
     file_name = os.path.basename(file.name)
@@ -71,11 +65,10 @@ def open_file():
     loaded.config(anchor="s")
     loaded.pack(side=TOP, pady=5)
 
-
     if file is not None:
         if file_name.__contains__(".apk"):
             print(file)
-            #progress["value"] += 10
+            # progress["value"] += 10
             pogBar(progress)
             window.update_idletasks()
             apk_decompile(file.name)
@@ -87,6 +80,7 @@ def open_file():
         f.write(content)
         f.close()
 
+    btn1.configure(bg="green")
 
 # def multiProc():
 
@@ -99,7 +93,7 @@ def apk_decompile(apk_file):
     apk_name = os.path.basename(apk_file)
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o original_apk/{apk_name}")
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o output/{apk_name}")
-    textLog.insert(END,f"{file_name} successfully decompiled at output/{apk_name}\n")
+    textLog.insert(END, f"{file_name} successfully decompiled at output/{apk_name}\n")
     loaded = Label(window, text=f"{file_name} successfully decompiled at output/{apk_name}")
     loaded.config(anchor=CENTER)
     loaded.pack(side=TOP, pady=5)
@@ -113,18 +107,18 @@ def apk_recompile_sign(apk_file):
 
     pogBar(progress)
     apk_name = os.path.basename(apk_file)
-    subprocess.call(f"java -jar tools/apktool.jar b -f -r --use-aapt2 output/{apk_file} -o data_files/obfuscated_apk/{apk_name}")
+    subprocess.call(
+        f"java -jar tools/apktool.jar b -f -r --use-aapt2 output/{apk_file} -o data_files/obfuscated_apk/{apk_name}")
     time.sleep(3)
-    subprocess.call(f"jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass password -keystore tools/test.keystore data_files/obfuscated_apk/{apk_name} test")
+    subprocess.call(
+        f"jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass password -keystore tools/test.keystore data_files/obfuscated_apk/{apk_name} test")
     subprocess.call(f"jarsigner -verify -verbose -certs data_files/obfuscated_apk/{apk_name}")
-    subprocess.call(f"tools/zipalign -v 4 data_files/obfuscated_apk/{apk_name} data_files/obfuscated_apk/aligned-{apk_name}")
+    subprocess.call(
+        f"tools/zipalign -v 4 data_files/obfuscated_apk/{apk_name} data_files/obfuscated_apk/aligned-{apk_name}")
     loaded = Label(window, text=f"{file_name} successfully recompiled at data_files/obfuscated_apk/aligned-{apk_name}")
     loaded.config(anchor=CENTER)
     loaded.pack(side=TOP, pady=5)
     progress["value"] += 40
-
-
-
 
 
 # -------------------- Obfuscation Part --------------------
@@ -153,14 +147,15 @@ def obfuscate_smali_file():
                         main_smali_file_path = f"output/{file_name}/{i}/com/{x}/{z}"
                         for e in Path().cwd().glob(f"{main_smali_file_path}/*.smali"):
                             count += 1
-                            #print(e)
+                            # print(e)
                             nocomment(e)
                             addjunkcode(e)
-                            #insertIFcondition(e)
+                            insertIFcondition(e)
     loaded = Label(window, text=f"{count} Smali file obfuscated!")
     loaded.config(anchor=CENTER)
     loaded.pack(side=TOP, pady=5)
     progress["value"] += 15
+
 
 def nocomment(inFile):
     print(inFile)
@@ -181,9 +176,10 @@ def nocomment(inFile):
 
     open_file.close()
     outFile = open(inFile, "w")
-    #outFile = open(f"data_files/{basename}", "w")
+    # outFile = open(f"data_files/{basename}", "w")
     outFile.write(change)
     outFile.close()
+
 
 def addjunkcode(smaliCode):
     flag1 = 0
@@ -239,7 +235,7 @@ def addjunkcode(smaliCode):
         while iterator < len(lines):
             if ".method" in lines[iterator]:
                 randint = random.randint(3, 5)
-                for i in range(1,randint):
+                for i in range(1, randint):
                     lines.insert(iterator + i, saltNOP)
                 iterator += 1
             iterator += 1
@@ -254,7 +250,7 @@ def addjunkcode(smaliCode):
         while iterator < len(lines):
             if "nop" in lines[iterator]:
                 anotherRand = random.randint(1, 3)
-                for i in range(0 ,anotherRand):
+                for i in range(0, anotherRand):
                     saltGOTOfront = "goto : gogo_" + str(counter) + "\n"
                     saltGOTOback = ": gogo_" + str(counter) + "\n\n"
                     lines.insert(iterator + i, saltGOTOfront)
@@ -266,6 +262,7 @@ def addjunkcode(smaliCode):
     f.writelines(lines)
     f.close()
 
+
 def test():
     rootDir = 'output'
     for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
@@ -275,10 +272,10 @@ def test():
     for fname in fileList:
         print('\t%s' % fname)
 
+
 def test():
-
-
     return None
+
 
 def clearFiles():
     textLog.insert(END, "TEST")
@@ -288,13 +285,15 @@ def clearFiles():
     loaded = Label(window, text="Folder Cleared")
     loaded.config(anchor=CENTER)
     loaded.pack(side=TOP, pady=5)
-    window.after(3000, destroy,loaded)
+    window.after(3000, destroy, loaded)
+
 
 def destroy(item):
     item.destroy()
 
+
 def insertIFcondition(file):
-    data = open(file,"r").readlines()
+    data = open(file, "r").readlines()
     size = len(data)
     i = 0
     while i < size:
@@ -302,26 +301,25 @@ def insertIFcondition(file):
             currentvariablevalue = int(data[i].split(".locals")[1].strip("\n"))
             if currentvariablevalue > 15:
                 return
-            data[i] = ".locals " + str(currentvariablevalue+2) + "\n"
-            variable_one ="v"+str(int(currentvariablevalue))
-            variable_two ="v"+str(int(currentvariablevalue+1))
-            firstvariablevalue = "const/4 " + str(variable_one) + ", " + str(hex(random.randint(5,9))) + "\n"
-            secondvariablevalue = "const/4 " + str(variable_two) + ", " + str(hex(random.randint(0,4))) + "\n"
+            data[i] = ".locals " + str(currentvariablevalue + 2) + "\n"
+            variable_one = "v" + str(int(currentvariablevalue))
+            variable_two = "v" + str(int(currentvariablevalue + 1))
+            firstvariablevalue = "const/4 " + str(variable_one) + ", " + str(hex(random.randint(5, 9))) + "\n"
+            secondvariablevalue = "const/4 " + str(variable_two) + ", " + str(hex(random.randint(0, 4))) + "\n"
             condvariable = ":cond_" + str(random.randint(500, 1000)) + "\n"
             ifstatement = "if-le " + variable_one + "," + variable_two + "," + condvariable + "\n"
 
-            data.insert(i+1,condvariable)
+            data.insert(i + 1, condvariable)
             # insert junk here
-            data.insert(i+1,ifstatement)
-            data.insert(i+1,secondvariablevalue)
-            data.insert(i+1,firstvariablevalue)
+            data.insert(i + 1, ifstatement)
+            data.insert(i + 1, secondvariablevalue)
+            data.insert(i + 1, firstvariablevalue)
 
         size = len(data)
         i += 1
-   	data.close()
-   	with open(file, 'w') as f:
-    	f.writelines(data)
-
+        #data.close()
+        with open(file, 'w') as f:
+            f.writelines(data)
 
 
 def pogBar(bar):
@@ -346,7 +344,6 @@ def openNewWindow():
         textOriginal.insert(END, data)
         tf.close()
 
-
     def openObfuse():
         tf = askopenfile(
             initialdir="output",
@@ -369,19 +366,16 @@ def openNewWindow():
     topFrame = Frame(compareWindow)
     btmFrame = Frame(compareWindow)
 
-
-
     textOriginal = Text(topFrame, width=40, height=40)
     textObfuscate = Text(topFrame, width=40, height=40)
 
-    textOriginal.grid(row = 0, column = 0, sticky = W, pady = 10, padx = 10)
-    textObfuscate.grid(row = 0, column = 2, sticky = W, pady = 10, padx = 10)
+    textOriginal.grid(row=0, column=0, sticky=W, pady=10, padx=10)
+    textObfuscate.grid(row=0, column=2, sticky=W, pady=10, padx=10)
 
     oriPath = Entry(btmFrame, width=100)
     obfusPath = Entry(btmFrame, width=100)
     oriPath.grid(row=3, column=1, pady=2, padx=10)
     obfusPath.grid(row=4, column=1, pady=2, padx=10)
-
 
     Button(
         btmFrame,
@@ -398,5 +392,6 @@ def openNewWindow():
     compareWindow.mainloop()
 
 
-textLog.pack(side=BOTTOM,fill=BOTH)
+textLog.pack(side=BOTTOM, fill=BOTH)
+
 window.mainloop()
