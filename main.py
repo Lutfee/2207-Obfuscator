@@ -34,21 +34,11 @@ def open_file():
     global file_name
     global file_path
 
-    # clear logs
-
     file = askopenfile(mode='r')
-    # pogBar(progress)
-    # progress["value"] += 20
-
-
     window.update_idletasks()
     file_name = os.path.basename(file.name)
     file_path = file.name
-
     textLog.insert(END, f"{file_name} is loaded\n")
-    loaded = Label(window, text=f"{file_name} is loaded\n")
-    loaded.config(anchor="s")
-    loaded.pack(side=TOP, pady=5)
 
 
     if file is not None:
@@ -66,7 +56,7 @@ def open_file():
         f.write(content)
         f.close()
 
-    btn1.configure(bg="green")
+
 
 # def multiProc():
 
@@ -78,16 +68,12 @@ def apk_decompile(apk_file):
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o original_apk/{apk_name}")
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o output/{apk_name}")
     textLog.insert(END, f"{file_name} successfully decompiled at output/{apk_name}\n")
-    loaded = Label(window, text=f"{file_name} successfully decompiled at output/{apk_name}")
-    loaded.config(anchor=CENTER)
-    loaded.pack(side=TOP, pady=5)
     progress["value"] += 10
     window.update_idletasks()
 
 
 # recompile and sign apk
 def apk_recompile_sign(apk_file):
-
     pogBar(progress)
     apk_name = os.path.basename(apk_file)
     subprocess.call(
@@ -98,9 +84,7 @@ def apk_recompile_sign(apk_file):
     subprocess.call(f"jarsigner -verify -verbose -certs data_files/obfuscated_apk/{apk_name}")
     subprocess.call(
         f"tools/zipalign -v 4 data_files/obfuscated_apk/{apk_name} data_files/obfuscated_apk/aligned-{apk_name}")
-    loaded = Label(window, text=f"{file_name} successfully recompiled at data_files/obfuscated_apk/aligned-{apk_name}")
-    loaded.config(anchor=CENTER)
-    loaded.pack(side=TOP, pady=5)
+    textLog.insert(END, f"{file_name} successfully recompiled at data_files/obfuscated_apk/aligned-{apk_name}")
     progress["value"] += 40
 
 
@@ -135,9 +119,7 @@ def obfuscate_smali_file():
                             nocomment(e)
                             addjunkcode(e)
                             insertIFcondition(e)
-    loaded = Label(window, text=f"{count} Smali file obfuscated!")
-    loaded.config(anchor=CENTER)
-    loaded.pack(side=TOP, pady=5)
+    textLog.insert(END, f"{count} Smali file obfuscated!\n")
     progress["value"] += 15
 
 
@@ -262,13 +244,10 @@ def test():
 
 
 def clearFiles():
-    textLog.insert(END, "TEST")
+    textLog.insert(END, "Folder Cleared\n")
     files = glob('data_files/obfuscated_apk/*')
     for f in files:
         os.remove(f)
-    loaded = Label(window, text="Folder Cleared")
-    loaded.config(anchor=CENTER)
-    loaded.pack(side=TOP, pady=5)
     window.after(3000, destroy, loaded)
 
 
@@ -277,22 +256,22 @@ def destroy(item):
 
 
 def insertIFcondition(file):
-	if "array" in file:
-		return
+    if "array" in str(file):
+        return
     with open(file, 'r') as f:
-    	data = f.readlines()
+        data = f.readlines()
     size = len(data)
     i = 0
     while i < size:
         if ".locals" in data[i]:
             currentvariablevalue = int(data[i].split(".locals")[1].strip("\n"))
-            if currentvariablevalue > 15:
+            if currentvariablevalue > 7:
                 return
             data[i] = ".locals " + str(currentvariablevalue + 2) + "\n"
             variable_one = "v" + str(int(currentvariablevalue))
             variable_two = "v" + str(int(currentvariablevalue + 1))
-            firstvariablevalue = "const/4 " + str(variable_one) + ", " + str(hex(random.randint(5, 9))) + "\n"
-            secondvariablevalue = "const/4 " + str(variable_two) + ", " + str(hex(random.randint(0, 4))) + "\n"
+            firstvariablevalue = "const/4 " + str(variable_one) + ", " + str(hex(random.randint(5, 7))) + "\n"
+            secondvariablevalue = "const/4 " + str(variable_two) + ", " + str(hex(random.randint(-8, 4))) + "\n"
             condvariable = ":cond_" + str(random.randint(500, 1000)) + "\n"
             ifstatement = "if-le " + variable_one + "," + variable_two + "," + condvariable + "\n"
 
@@ -396,6 +375,7 @@ progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate"
 progress.pack(pady=20)
 
 textLog = Text(window, width=40, height=40)
-textLog.pack(side=BOTTOM, fill=BOTH)
+textLog.pack(side=BOTTOM, fill=BOTH, padx=5, pady=5)
+textLog.yview_pickplace("end")
 
 window.mainloop()
