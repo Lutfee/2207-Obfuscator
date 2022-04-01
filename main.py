@@ -6,20 +6,20 @@ import re
 import subprocess
 import time
 from glob import glob
-from subprocess import Popen, PIPE
 from pathlib import Path
 from tkinter import *
-import string
 # importing askopenfile function
 # from class filedialog
 from tkinter.filedialog import askopenfile
 from tkinter.ttk import *
+import string
 
 # ----------- Global Var -----------
 content = ""
 file_name = ""
 file_path = ""
 main_smali_file_path = ""
+loaded = ""
 
 window = Tk()
 window.title("Simple Obfuscator")
@@ -36,18 +36,10 @@ def open_file():
     global file_path
 
     file = askopenfile(mode='r')
-    #pogBar(progress)
-    #progress["value"] += 20
-
-
     window.update_idletasks()
     file_name = os.path.basename(file.name)
     file_path = file.name
-
-
-    loaded = Label(window, text=f"{file_name} is loaded")
-    loaded.config(anchor="s")
-    loaded.pack(side=TOP, pady=5)
+    textLog.insert(END, f"{file_name} is loaded\n")
 
 
     if file is not None:
@@ -66,6 +58,7 @@ def open_file():
         f.close()
 
 
+
 # def multiProc():
 
 
@@ -75,10 +68,7 @@ def apk_decompile(apk_file):
     apk_name = os.path.basename(apk_file)
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o original_apk/{apk_name}")
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o output/{apk_name}")
-
-    loaded = Label(window, text=f"{file_name} successfully decompiled at output/{apk_name}")
-    loaded.config(anchor=CENTER)
-    loaded.pack(side=TOP, pady=5)
+    textLog.insert(END, f"{file_name} successfully decompiled at output/{apk_name}\n")
     progress["value"] += 10
     window.update_idletasks()
 
@@ -87,14 +77,15 @@ def apk_decompile(apk_file):
 def apk_recompile_sign(apk_file):
     pogBar(progress)
     apk_name = os.path.basename(apk_file)
-    subprocess.call(f"java -jar tools/apktool.jar b -f -r --use-aapt2 output/{apk_file} -o data_files/obfuscated_apk/{apk_name}")
-    time.sleep(5)
-    subprocess.call(f"jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass password -keystore tools/test.keystore data_files/obfuscated_apk/{apk_name} test")
+    subprocess.call(
+        f"java -jar tools/apktool.jar b -f -r --use-aapt2 output/{apk_file} -o data_files/obfuscated_apk/{apk_name}")
+    time.sleep(3)
+    subprocess.call(
+        f"jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -storepass password -keystore tools/test.keystore data_files/obfuscated_apk/{apk_name} test")
     subprocess.call(f"jarsigner -verify -verbose -certs data_files/obfuscated_apk/{apk_name}")
-    subprocess.call(f"tools/zipalign -v 4 data_files/obfuscated_apk/{apk_name} data_files/obfuscated_apk/aligned-{apk_name}")
-    loaded = Label(window, text=f"{file_name} successfully recompiled at data_files/obfuscated_apk/aligned-{apk_name}")
-    loaded.config(anchor=CENTER)
-    loaded.pack(side=TOP, pady=5)
+    subprocess.call(
+        f"tools/zipalign -v 4 data_files/obfuscated_apk/{apk_name} data_files/obfuscated_apk/aligned-{apk_name}")
+    textLog.insert(END, f"{file_name} successfully recompiled at data_files/obfuscated_apk/aligned-{apk_name}")
     progress["value"] += 40
 
 
@@ -125,14 +116,14 @@ def obfuscate_smali_file():
                         main_smali_file_path = f"output/{file_name}/{i}/com/{x}/{z}"
                         for e in Path().cwd().glob(f"{main_smali_file_path}/*.smali"):
                             count += 1
-                            #print(e)
-                            renamingMethods(e)
+                            # print(e)
                             nocomment(e)
                             addjunkcode(e)
-    loaded = Label(window, text=f"{count} Smali file obfuscated!")
-    loaded.config(anchor=CENTER)
-    loaded.pack(side=TOP, pady=5)
+                            insertIFcondition(e)
+                            class_renaming(e)
+    textLog.insert(END, f"{count} Smali file obfuscated!\n")
     progress["value"] += 15
+
 
 def nocomment(inFile):
     print(inFile)
@@ -153,9 +144,10 @@ def nocomment(inFile):
 
     open_file.close()
     outFile = open(inFile, "w")
-    #outFile = open(f"data_files/{basename}", "w")
+    # outFile = open(f"data_files/{basename}", "w")
     outFile.write(change)
     outFile.close()
+
 
 def addjunkcode(smaliCode):
     flag1 = 0
@@ -211,7 +203,7 @@ def addjunkcode(smaliCode):
         while iterator < len(lines):
             if ".method" in lines[iterator]:
                 randint = random.randint(3, 5)
-                for i in range(1,randint):
+                for i in range(1, randint):
                     lines.insert(iterator + i, saltNOP)
                 iterator += 1
             iterator += 1
@@ -226,7 +218,7 @@ def addjunkcode(smaliCode):
         while iterator < len(lines):
             if "nop" in lines[iterator]:
                 anotherRand = random.randint(1, 3)
-                for i in range(0 ,anotherRand):
+                for i in range(0, anotherRand):
                     saltGOTOfront = "goto : gogo_" + str(counter) + "\n"
                     saltGOTOback = ": gogo_" + str(counter) + "\n\n"
                     lines.insert(iterator + i, saltGOTOfront)
@@ -237,36 +229,6 @@ def addjunkcode(smaliCode):
     f = open(smaliCode, "w")
     f.writelines(lines)
     f.close()
-#Find all method names and rename them, then use a dictionary to map the old names to the new names, and finally go through the smali files to be altered and rename them.
-def renamingMethods(smaliCodeFile):
-    print(smaliCodeFile)
-    oldNewClassDictionary = {}
-    with open(smaliCodeFile, "r") as fp:
-        lines = fp.readlines()
-        #This is to map the old method into new methods
-        for line in lines:
-            #If a line has the term methods in it but isn't a constructor or onCreate method, it should be renamed.
-            if line.__contains__(".method") and ("constructor" not in line) and ("onCreate" not in line):
-                numOfCharacters = random.randint(1, 10)
-                letters = string.ascii_lowercase
-                RandomMethodNames = (''.join(random.choice(letters) for i in range(numOfCharacters)))
-                lineArrays = line.split(" ")
-                lineArrays[2] = lineArrays[2].split("()")
-                #Continue to use the old name as the key and the new name as the method.
-                oldNewClassDictionary[lineArrays[2][0]] = RandomMethodNames
-            else:
-               continue
-        #print(oldNewClassDict)
-        #print(lines)
-        #run through the file one more time to refactor the smali file method names
-        with open(smaliCodeFile, "w") as f:
-            for line in lines:
-                for methodNames in oldNewClassDictionary.keys():
-                    if methodNames in line:
-                        line = line.replace(methodNames, oldNewClassDictionary[methodNames])
-                        print(line)
-            f.write(line)
-
 
 
 def test():
@@ -278,23 +240,54 @@ def test():
     for fname in fileList:
         print('\t%s' % fname)
 
+
 def test():
-
-
     return None
 
+
 def clearFiles():
+    textLog.insert(END, "Folder Cleared\n")
     files = glob('data_files/obfuscated_apk/*')
     for f in files:
         os.remove(f)
-    loaded = Label(window, text="Folder Cleared")
-    loaded.config(anchor=CENTER)
-    loaded.pack(side=TOP, pady=5)
-    window.after(3000, destroy,loaded)
+    window.after(3000, destroy, loaded)
+
 
 def destroy(item):
     item.destroy()
 
+
+def insertIFcondition(file):
+    if "array" in str(file):
+        return
+    with open(file, 'r') as f:
+        data = f.readlines()
+    size = len(data)
+    i = 0
+    while i < size:
+        if ".locals" in data[i]:
+            currentvariablevalue = int(data[i].split(".locals")[1].strip("\n"))
+            if currentvariablevalue > 7:
+                return
+            data[i] = ".locals " + str(currentvariablevalue + 2) + "\n"
+            variable_one = "v" + str(int(currentvariablevalue))
+            variable_two = "v" + str(int(currentvariablevalue + 1))
+            firstvariablevalue = "const/4 " + str(variable_one) + ", " + str(hex(random.randint(5, 7))) + "\n"
+            secondvariablevalue = "const/4 " + str(variable_two) + ", " + str(hex(random.randint(-8, 4))) + "\n"
+            condvariable = ":cond_" + str(random.randint(500, 1000)) + "\n"
+            ifstatement = "if-le " + variable_one + "," + variable_two + "," + condvariable + "\n"
+
+            data.insert(i + 1, condvariable)
+            # insert junk here
+            data.insert(i + 1, ifstatement)
+            data.insert(i + 1, secondvariablevalue)
+            data.insert(i + 1, firstvariablevalue)
+
+        size = len(data)
+        i += 1
+        #data.close()
+        with open(file, 'w') as f:
+            f.writelines(data)
 
 
 
@@ -304,19 +297,129 @@ def pogBar(bar):
         window.update_idletasks()
         time.sleep(0.5)
 
+def class_renaming(inFiles):
+    fileList = []
+    rename_dictionary = {}
+    for root_folder, sub, files in os.walk(inFiles):
+        for file in files:
+            if ("\com\\" in root_folder) and ("\google\\" not in root_folder) and (file != "MainActivity.smali"):
+                inFiles = root_folder + "\\" + file
+                fileList.append(inFiles)
+
+    for file in fileList:
+
+        # This is to Get random name
+        length = random.randint(5, 10)
+        randString = getRandomstring(length)
+
+        # This is to Get the name of the file
+        name = file.split('\\')[-1].split(".smali")[0]
+        rename_dictionary[name] = randString
+
+        # This is to Overwrite data of the file
+        filereads = open(file, "r")
+        updates = filereads.read()
+        for key, value in rename_dictionary.items():
+            updates = updates.replace(key, value)
+            if updates != "":
+                filewrite = open(file, "w")
+                filewrite.write(updates)  #This is to write the class name
+                filewrite.close()
+        filereads.close()
+
+        # This is to get the file path
+        absoulutepath = ''.join(os.path.abspath(file).split(name + ".smali"))
+        newFilename = rename_dictionary.get(name) + '.smali'
+        newabspath = absoulutepath + newFilename
+        os.rename(file, newabspath)  # rename file
+
+def getRandomstring(length):
+    # This is to choose from all lowercase letter
+    letters = string.ascii_lowercase
+    result_string = ''.join(random.choice(letters) for i in range(length))
+    return result_string
+
+
+def openNewWindow():
+    def openOri():
+        tf = askopenfile(
+            initialdir="original_apk",
+            title="Open Smali file",
+            filetypes=(("Smali Files", "*.smali"),)
+        )
+        print(tf)
+        file = tf.name
+        oriPath.insert(END, tf)
+        tf = open(file)  # or tf = open(tf, 'r')
+        data = tf.read()
+        textOriginal.insert(END, data)
+        tf.close()
+
+    def openObfuse():
+        tf = askopenfile(
+            initialdir="output",
+            title="Open Smali file",
+            filetypes=(("Smali Files", "*.smali"),)
+        )
+        print(tf)
+        file = tf.name
+        obfusPath.insert(END, file)
+        tf = open(file)  # or tf = open(tf, 'r')
+        data = tf.read()
+        textObfuscate.insert(END, data)
+        tf.close()
+
+    compareWindow = Toplevel(window)
+    compareWindow.title("Compare Smali Files")
+    # sets the geometry of toplevel
+    compareWindow.geometry("740x740")
+
+    topFrame = Frame(compareWindow)
+    btmFrame = Frame(compareWindow)
+
+    textOriginal = Text(topFrame, width=40, height=40)
+    textObfuscate = Text(topFrame, width=40, height=40)
+
+    textOriginal.grid(row=0, column=0, sticky=W, pady=10, padx=10)
+    textObfuscate.grid(row=0, column=2, sticky=W, pady=10, padx=10)
+
+    oriPath = Entry(btmFrame, width=100)
+    obfusPath = Entry(btmFrame, width=100)
+    oriPath.grid(row=3, column=1, pady=2, padx=10)
+    obfusPath.grid(row=4, column=1, pady=2, padx=10)
+
+    Button(
+        btmFrame,
+        text="Open Original",
+        command=openOri
+    ).grid(row=3, column=0, pady=2, padx=10)
+    Button(
+        btmFrame,
+        text="Open Obfuscated",
+        command=openObfuse
+    ).grid(row=4, column=0, pady=2, padx=10)
+    topFrame.pack(side=TOP)
+    btmFrame.pack(side=BOTTOM)
+    compareWindow.mainloop()
+
+
 
 # -------------------- GUI Window --------------------
 
 btn1 = Button(window, text='Step 1: Open & Decompile APK', command=lambda: open_file()).pack(side=TOP, pady=10)
 btn2 = Button(window, text='Step 2: Obfuscate Smali', command=lambda: obfuscate_smali_file()).pack(side=TOP, pady=10)
 btn3 = Button(window, text='Step 3: Recompile', command=lambda: apk_recompile_sign(file_name)).pack(side=TOP, pady=10)
-loaded = Label(window, text="OPTIONAL")
-loaded.config(anchor=CENTER)
-loaded.pack(side=TOP, pady=10)
-btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: test()).pack(side=TOP, pady=10)
+optionLabel = Label(window, text="OPTIONAL")
+optionLabel.config(anchor=CENTER)
+optionLabel.pack(side=TOP, pady=10)
+btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
 btn4 = Button(window, text='CLEAR RECOMPILED APK', command=lambda: clearFiles()).pack(side=TOP, pady=10)
 
 progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
 progress.pack(pady=20)
+
+textLog = Text(window, width=40, height=40)
+textLog.pack(side=BOTTOM, fill=BOTH, padx=5, pady=5)
+textLog.yview_pickplace("end")
 
 window.mainloop()
