@@ -40,6 +40,7 @@ def open_file():
     # pogBar(progress)
     # progress["value"] += 20
 
+
     window.update_idletasks()
     file_name = os.path.basename(file.name)
     file_path = file.name
@@ -49,10 +50,11 @@ def open_file():
     loaded.config(anchor="s")
     loaded.pack(side=TOP, pady=5)
 
+
     if file is not None:
         if file_name.__contains__(".apk"):
             print(file)
-            # progress["value"] += 10
+            #progress["value"] += 10
             pogBar(progress)
             window.update_idletasks()
             apk_decompile(file.name)
@@ -71,8 +73,6 @@ def open_file():
 
 # decompile apk
 def apk_decompile(apk_file):
-    global loaded
-
     progress["value"] += 20
     apk_name = os.path.basename(apk_file)
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o original_apk/{apk_name}")
@@ -87,7 +87,6 @@ def apk_decompile(apk_file):
 
 # recompile and sign apk
 def apk_recompile_sign(apk_file):
-    global loaded
 
     pogBar(progress)
     apk_name = os.path.basename(apk_file)
@@ -105,11 +104,12 @@ def apk_recompile_sign(apk_file):
     progress["value"] += 40
 
 
+
+
+
 # -------------------- Obfuscation Part --------------------
 def obfuscate_smali_file():
-    global loaded
     global main_smali_file_path
-
     folder = os.listdir(f"output/{file_name}")
     print('folder', folder)
     count = 0
@@ -277,7 +277,10 @@ def destroy(item):
 
 
 def insertIFcondition(file):
-    data = open(file, "r").readlines()
+	if "array" in file:
+		return
+    with open(file, 'r') as f:
+    	data = f.readlines()
     size = len(data)
     i = 0
     while i < size:
@@ -304,6 +307,7 @@ def insertIFcondition(file):
         #data.close()
         with open(file, 'w') as f:
             f.writelines(data)
+
 
 
 def pogBar(bar):
