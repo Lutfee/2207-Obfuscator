@@ -262,7 +262,8 @@ def clearFiles():
 def destroy(item):
     item.destroy()
 
-def insertIFcondition(data):
+def insertIFcondition(file):
+    data = open(file,"r").readlines()
     size = len(data)
     i = 0
     while i < size:
@@ -286,6 +287,9 @@ def insertIFcondition(data):
 
         size = len(data)
         i += 1
+   	data.close()
+   	with open(file, 'w') as f:
+    	f.writelines(data)
 
 
 
