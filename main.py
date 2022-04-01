@@ -262,6 +262,30 @@ def clearFiles():
 def destroy(item):
     item.destroy()
 
+def insertIFcondition(data):
+    size = len(data)
+    i = 0
+    while i < size:
+        if ".locals" in data[i]:
+            currentvariablevalue = int(data[i].split(".locals")[1].strip("\n"))
+            if currentvariablevalue > 15:
+                return
+            data[i] = ".locals " + str(currentvariablevalue+2) + "\n"
+            variable_one ="v"+str(int(currentvariablevalue))
+            variable_two ="v"+str(int(currentvariablevalue+1))
+            firstvariablevalue = "const/4 " + str(variable_one) + ", " + str(hex(random.randint(5,9))) + "\n"
+            secondvariablevalue = "const/4 " + str(variable_two) + ", " + str(hex(random.randint(0,4))) + "\n"
+            condvariable = ":cond_" + str(random.randint(500, 1000)) + "\n"
+            ifstatement = "if-le " + variable_one + "," + variable_two + "," + condvariable + "\n"
+
+            data.insert(i+1,condvariable)
+            # insert junk here
+            data.insert(i+1,ifstatement)
+            data.insert(i+1,secondvariablevalue)
+            data.insert(i+1,firstvariablevalue)
+
+        size = len(data)
+        i += 1
 
 
 
