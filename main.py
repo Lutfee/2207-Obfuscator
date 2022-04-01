@@ -3,6 +3,7 @@
 import os
 import random
 import re
+import shutil
 import subprocess
 import time
 from glob import glob
@@ -11,6 +12,8 @@ from tkinter import *
 # importing askopenfile function
 # from class filedialog
 from tkinter.filedialog import askopenfile
+import tkinter.scrolledtext as st
+from tkinter import Menu
 from tkinter.ttk import *
 
 # ----------- Global Var -----------
@@ -18,7 +21,6 @@ content = ""
 file_name = ""
 file_path = ""
 main_smali_file_path = ""
-loaded = ""
 
 window = Tk()
 window.title("Simple Obfuscator")
@@ -30,6 +32,7 @@ window.config(background="light blue")
 # file in read mode and only Python files
 # will be opened
 def open_file():
+
     global content
     global file_name
     global file_path
@@ -39,6 +42,7 @@ def open_file():
     file_name = os.path.basename(file.name)
     file_path = file.name
     textLog.insert(END, f"{file_name} is loaded\n")
+    textLog.yview(END)
 
 
     if file is not None:
@@ -56,7 +60,8 @@ def open_file():
         f.write(content)
         f.close()
 
-
+    textLog.insert(END, "*Step 1 Complete*\n", 'complete')
+    textLog.yview(END)
 
 # def multiProc():
 
@@ -68,6 +73,7 @@ def apk_decompile(apk_file):
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o original_apk/{apk_name}")
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o output/{apk_name}")
     textLog.insert(END, f"{file_name} successfully decompiled at output/{apk_name}\n")
+    textLog.yview(END)
     progress["value"] += 10
     window.update_idletasks()
 
@@ -84,8 +90,11 @@ def apk_recompile_sign(apk_file):
     subprocess.call(f"jarsigner -verify -verbose -certs data_files/obfuscated_apk/{apk_name}")
     subprocess.call(
         f"tools/zipalign -v 4 data_files/obfuscated_apk/{apk_name} data_files/obfuscated_apk/aligned-{apk_name}")
-    textLog.insert(END, f"{file_name} successfully recompiled at data_files/obfuscated_apk/aligned-{apk_name}")
+    textLog.insert(END, f"{file_name} successfully recompiled at data_files/obfuscated_apk/aligned-{apk_name}\n")
+    textLog.yview(END)
     progress["value"] += 40
+    textLog.insert(END, "*Step 3 Complete*\n", 'complete')
+    textLog.yview(END)
 
 
 
@@ -115,15 +124,24 @@ def obfuscate_smali_file():
                         main_smali_file_path = f"output/{file_name}/{i}/com/{x}/{z}"
                         for e in Path().cwd().glob(f"{main_smali_file_path}/*.smali"):
                             count += 1
+
                             # print(e)
                             nocomment(e)
                             addjunkcode(e)
                             insertIFcondition(e)
+
+
+
     textLog.insert(END, f"{count} Smali file obfuscated!\n")
+    textLog.yview(END)
     progress["value"] += 15
+    textLog.insert(END, "*Step 2 Complete*\n", 'complete')
+    textLog.yview(END)
 
 
 def nocomment(inFile):
+
+    textLog.yview(END)
     print(inFile)
     open_file = open(inFile, "r")
     basename = os.path.basename(inFile)
@@ -132,13 +150,13 @@ def nocomment(inFile):
 
     for line in open_file:
         result = re.findall(regex, line)
-        if not result:
+        if result:
+            change = change + line
+        else:
             line = line.split("#", 1)
             print(line[0])
             change = change + str(line[0])
             print(change)
-        else:
-            change = change + line
 
     open_file.close()
     outFile = open(inFile, "w")
@@ -148,6 +166,7 @@ def nocomment(inFile):
 
 
 def addjunkcode(smaliCode):
+
     flag1 = 0
     flag2 = 0
     functionNameFirst = ["important_", "necessary_", "mustHave_", "coolCool_"]
@@ -239,23 +258,12 @@ def test():
         print('\t%s' % fname)
 
 
-def test():
-    return None
 
 
-def clearFiles():
-    textLog.insert(END, "Folder Cleared\n")
-    files = glob('data_files/obfuscated_apk/*')
-    for f in files:
-        os.remove(f)
-    window.after(3000, destroy, loaded)
-
-
-def destroy(item):
-    item.destroy()
 
 
 def insertIFcondition(file):
+
     if "array" in str(file):
         return
     with open(file, 'r') as f:
@@ -287,6 +295,26 @@ def insertIFcondition(file):
         with open(file, 'w') as f:
             f.writelines(data)
 
+def clearFiles():
+    textLog.insert(END, "Folders Cleared\n", 'complete')
+    textLog.yview(END)
+    files_obs = glob('data_files/obfuscated_apk/*')
+    files_ori = glob('original_apk/*')
+    files_output = glob('output/*')
+    file_apk = glob('data_files/*.apk')
+
+    for f in files_obs:
+        os.remove(f)
+    for f in files_ori:
+        shutil.rmtree(f)
+    for f in files_output:
+        shutil.rmtree(f)
+    for f in file_apk:
+        os.remove(f)
+
+
+def destroy(item):
+    item.destroy()
 
 
 def pogBar(bar):
@@ -294,6 +322,7 @@ def pogBar(bar):
         bar["value"] += i
         window.update_idletasks()
         time.sleep(0.5)
+
 
 
 def openNewWindow():
@@ -328,19 +357,23 @@ def openNewWindow():
     compareWindow = Toplevel(window)
     compareWindow.title("Compare Smali Files")
     # sets the geometry of toplevel
-    compareWindow.geometry("740x740")
+    compareWindow.geometry("740x780")
 
     topFrame = Frame(compareWindow)
     btmFrame = Frame(compareWindow)
 
     textOriginal = Text(topFrame, width=40, height=40)
     textObfuscate = Text(topFrame, width=40, height=40)
+    originalLabel = Label(topFrame, text="ORIGINAL")
+    obfuscateLabel = Label(topFrame, text="OBFUSCATED")
 
-    textOriginal.grid(row=0, column=0, sticky=W, pady=10, padx=10)
-    textObfuscate.grid(row=0, column=2, sticky=W, pady=10, padx=10)
+    originalLabel.grid(row=0, column=0, sticky=W, pady=10, padx=10)
+    obfuscateLabel.grid(row=0, column=2, sticky=W, pady=10, padx=10)
+    textOriginal.grid(row=1, column=0, sticky=W, pady=10, padx=10)
+    textObfuscate.grid(row=1, column=2, sticky=W, pady=10, padx=10)
 
-    oriPath = Entry(btmFrame, width=100)
-    obfusPath = Entry(btmFrame, width=100)
+    oriPath = Entry(btmFrame, width=90)
+    obfusPath = Entry(btmFrame, width=90)
     oriPath.grid(row=3, column=1, pady=2, padx=10)
     obfusPath.grid(row=4, column=1, pady=2, padx=10)
 
@@ -355,13 +388,25 @@ def openNewWindow():
         command=openObfuse
     ).grid(row=4, column=0, pady=2, padx=10)
     topFrame.pack(side=TOP)
-    btmFrame.pack(side=BOTTOM)
+    btmFrame.pack(side=BOTTOM,pady=10)
     compareWindow.mainloop()
+
+def openManual():
+    manualWindow = Toplevel(window)
+    manualWindow.title("Manual")
+    # sets the geometry of toplevel
+    manualWindow.geometry("580x400")
+    manual_text = Text(manualWindow, width=40, height=40)
+    manual_file = open("tools/manual.txt", 'r')  # or tf = open(tf, 'r')
+    data = manual_file.read()
+    manual_text.insert(END, data)
+    manual_file.close()
+    manual_text.pack(fill=BOTH)
+
 
 
 
 # -------------------- GUI Window --------------------
-
 btn1 = Button(window, text='Step 1: Open & Decompile APK', command=lambda: open_file()).pack(side=TOP, pady=10)
 btn2 = Button(window, text='Step 2: Obfuscate Smali', command=lambda: obfuscate_smali_file()).pack(side=TOP, pady=10)
 btn3 = Button(window, text='Step 3: Recompile', command=lambda: apk_recompile_sign(file_name)).pack(side=TOP, pady=10)
@@ -369,13 +414,21 @@ optionLabel = Label(window, text="OPTIONAL")
 optionLabel.config(anchor=CENTER)
 optionLabel.pack(side=TOP, pady=10)
 btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
-btn4 = Button(window, text='CLEAR RECOMPILED APK', command=lambda: clearFiles()).pack(side=TOP, pady=10)
+btn4 = Button(window, text='CLEAR OLD DATA', command=lambda: clearFiles()).pack(side=TOP, pady=10)
 
 progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
 progress.pack(pady=20)
 
-textLog = Text(window, width=40, height=40)
+textLog = st.ScrolledText(window, width=40, height=40)
+textLog.tag_config('complete', background="yellow", foreground="green")
+textLog.tag_config('process', background="yellow", foreground="red")
 textLog.pack(side=BOTTOM, fill=BOTH, padx=5, pady=5)
-textLog.yview_pickplace("end")
+
+menubar = Menu(window)
+window.config(menu=menubar)
+help_menu = Menu(menubar)
+
+help_menu.add_command(label="Manual", command=lambda: openManual())
+menubar.add_cascade(label="Help", menu=help_menu)
 
 window.mainloop()
