@@ -272,6 +272,73 @@ def pogBar(bar):
         time.sleep(0.5)
 
 
+def openNewWindow():
+    def openOri():
+        tf = askopenfile(
+            initialdir="original_apk",
+            title="Open Smali file",
+            filetypes=(("Smali Files", "*.smali"),)
+        )
+        print(tf)
+        file = tf.name
+        oriPath.insert(END, tf)
+        tf = open(file)  # or tf = open(tf, 'r')
+        data = tf.read()
+        textOriginal.insert(END, data)
+        tf.close()
+
+
+    def openObfuse():
+        tf = askopenfile(
+            initialdir="output",
+            title="Open Smali file",
+            filetypes=(("Smali Files", "*.smali"),)
+        )
+        print(tf)
+        file = tf.name
+        obfusPath.insert(END, file)
+        tf = open(file)  # or tf = open(tf, 'r')
+        data = tf.read()
+        textObfuscate.insert(END, data)
+        tf.close()
+
+    compareWindow = Toplevel(window)
+    compareWindow.title("Compare Smali Files")
+    # sets the geometry of toplevel
+    compareWindow.geometry("740x740")
+
+    topFrame = Frame(compareWindow)
+    btmFrame = Frame(compareWindow)
+
+
+
+    textOriginal = Text(topFrame, width=40, height=40)
+    textObfuscate = Text(topFrame, width=40, height=40)
+
+    textOriginal.grid(row = 0, column = 0, sticky = W, pady = 10, padx = 10)
+    textObfuscate.grid(row = 0, column = 2, sticky = W, pady = 10, padx = 10)
+
+    oriPath = Entry(btmFrame, width=100)
+    obfusPath = Entry(btmFrame, width=100)
+    oriPath.grid(row=3, column=1, pady=2, padx=10)
+    obfusPath.grid(row=4, column=1, pady=2, padx=10)
+
+
+    Button(
+        btmFrame,
+        text="Open Original",
+        command=openOri
+    ).grid(row=3, column=0, pady=2, padx=10)
+    Button(
+        btmFrame,
+        text="Open Obfuscated",
+        command=openObfuse
+    ).grid(row=4, column=0, pady=2, padx=10)
+    topFrame.pack(side=TOP)
+    btmFrame.pack(side=BOTTOM)
+    compareWindow.mainloop()
+
+
 # -------------------- GUI Window --------------------
 
 btn1 = Button(window, text='Step 1: Open & Decompile APK', command=lambda: open_file()).pack(side=TOP, pady=10)
@@ -280,7 +347,7 @@ btn3 = Button(window, text='Step 3: Recompile', command=lambda: apk_recompile_si
 loaded = Label(window, text="OPTIONAL")
 loaded.config(anchor=CENTER)
 loaded.pack(side=TOP, pady=10)
-btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: test()).pack(side=TOP, pady=10)
+btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
 btn4 = Button(window, text='CLEAR RECOMPILED APK', command=lambda: clearFiles()).pack(side=TOP, pady=10)
 
 progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
