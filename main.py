@@ -14,16 +14,37 @@ from tkinter import *
 from tkinter.filedialog import askopenfile
 from tkinter.ttk import *
 
+
 # ----------- Global Var -----------
 content = ""
 file_name = ""
 file_path = ""
 main_smali_file_path = ""
+loaded = ""
 
 window = Tk()
 window.title("Simple Obfuscator")
 window.geometry('520x500')
 window.config(background="light blue")
+
+# -------------------- GUI Window --------------------
+
+btn1 = Button(window, text='Step 1: Open & Decompile APK', command=lambda: open_file()).pack(side=TOP, pady=10)
+btn2 = Button(window, text='Step 2: Obfuscate Smali', command=lambda: obfuscate_smali_file()).pack(side=TOP, pady=10)
+btn3 = Button(window, text='Step 3: Recompile', command=lambda: apk_recompile_sign(file_name)).pack(side=TOP, pady=10)
+optionLabel = Label(window, text="OPTIONAL")
+optionLabel.config(anchor=CENTER)
+optionLabel.pack(side=TOP, pady=10)
+btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
+btn4 = Button(window, text='CLEAR RECOMPILED APK', command=lambda: clearFiles()).pack(side=TOP, pady=10)
+
+progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
+progress.pack(pady=20)
+
+textLog = Text(window, width=40, height=40)
+
+
+
 
 
 # This function will be used to open
@@ -34,6 +55,8 @@ def open_file():
     global file_name
     global file_path
 
+    #clear logs
+
     file = askopenfile(mode='r')
     #pogBar(progress)
     #progress["value"] += 20
@@ -43,8 +66,8 @@ def open_file():
     file_name = os.path.basename(file.name)
     file_path = file.name
 
-
-    loaded = Label(window, text=f"{file_name} is loaded")
+    textLog.insert(END, f"{file_name} is loaded\n")
+    loaded = Label(window, text=f"{file_name} is loaded\n")
     loaded.config(anchor="s")
     loaded.pack(side=TOP, pady=5)
 
@@ -70,11 +93,13 @@ def open_file():
 
 # decompile apk
 def apk_decompile(apk_file):
+    global loaded
+
     progress["value"] += 20
     apk_name = os.path.basename(apk_file)
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o original_apk/{apk_name}")
     os.system(f"java -jar tools/apktool.jar d -f -r {apk_file} -o output/{apk_name}")
-
+    textLog.insert(END,f"{file_name} successfully decompiled at output/{apk_name}\n")
     loaded = Label(window, text=f"{file_name} successfully decompiled at output/{apk_name}")
     loaded.config(anchor=CENTER)
     loaded.pack(side=TOP, pady=5)
@@ -84,6 +109,8 @@ def apk_decompile(apk_file):
 
 # recompile and sign apk
 def apk_recompile_sign(apk_file):
+    global loaded
+
     pogBar(progress)
     apk_name = os.path.basename(apk_file)
     subprocess.call(f"java -jar tools/apktool.jar b -f -r --use-aapt2 output/{apk_file} -o data_files/obfuscated_apk/{apk_name}")
@@ -102,7 +129,9 @@ def apk_recompile_sign(apk_file):
 
 # -------------------- Obfuscation Part --------------------
 def obfuscate_smali_file():
+    global loaded
     global main_smali_file_path
+
     folder = os.listdir(f"output/{file_name}")
     print('folder', folder)
     count = 0
@@ -127,6 +156,7 @@ def obfuscate_smali_file():
                             #print(e)
                             nocomment(e)
                             addjunkcode(e)
+                            #insertIFcondition(e)
     loaded = Label(window, text=f"{count} Smali file obfuscated!")
     loaded.config(anchor=CENTER)
     loaded.pack(side=TOP, pady=5)
@@ -251,6 +281,7 @@ def test():
     return None
 
 def clearFiles():
+    textLog.insert(END, "TEST")
     files = glob('data_files/obfuscated_apk/*')
     for f in files:
         os.remove(f)
@@ -363,18 +394,5 @@ def openNewWindow():
     compareWindow.mainloop()
 
 
-# -------------------- GUI Window --------------------
-
-btn1 = Button(window, text='Step 1: Open & Decompile APK', command=lambda: open_file()).pack(side=TOP, pady=10)
-btn2 = Button(window, text='Step 2: Obfuscate Smali', command=lambda: obfuscate_smali_file()).pack(side=TOP, pady=10)
-btn3 = Button(window, text='Step 3: Recompile', command=lambda: apk_recompile_sign(file_name)).pack(side=TOP, pady=10)
-loaded = Label(window, text="OPTIONAL")
-loaded.config(anchor=CENTER)
-loaded.pack(side=TOP, pady=10)
-btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
-btn4 = Button(window, text='CLEAR RECOMPILED APK', command=lambda: clearFiles()).pack(side=TOP, pady=10)
-
-progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
-progress.pack(pady=20)
-
+textLog.pack(side=BOTTOM,fill=BOTH)
 window.mainloop()
