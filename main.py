@@ -263,7 +263,10 @@ def destroy(item):
     item.destroy()
 
 def insertIFcondition(file):
-    data = open(file,"r").readlines()
+	if "array" in file:
+		return
+    with open(file, 'r') as f:
+    	data = f.readlines()
     size = len(data)
     i = 0
     while i < size:
