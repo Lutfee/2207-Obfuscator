@@ -25,22 +25,6 @@ window.title("Simple Obfuscator")
 window.geometry('520x500')
 window.config(background="light blue")
 
-# -------------------- GUI Window --------------------
-
-btn1 = Button(window, text='Step 1: Open & Decompile APK', command=lambda: open_file()).pack(side=TOP, pady=10)
-btn2 = Button(window, text='Step 2: Obfuscate Smali', command=lambda: obfuscate_smali_file()).pack(side=TOP, pady=10)
-btn3 = Button(window, text='Step 3: Recompile', command=lambda: apk_recompile_sign(file_name)).pack(side=TOP, pady=10)
-optionLabel = Label(window, text="OPTIONAL")
-optionLabel.config(anchor=CENTER)
-optionLabel.pack(side=TOP, pady=10)
-btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
-btn4 = Button(window, text='CLEAR RECOMPILED APK', command=lambda: clearFiles()).pack(side=TOP, pady=10)
-
-progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
-progress.pack(pady=20)
-
-textLog = Text(window, width=40, height=40)
-
 
 # This function will be used to open
 # file in read mode and only Python files
@@ -392,6 +376,22 @@ def openNewWindow():
     compareWindow.mainloop()
 
 
+
+# -------------------- GUI Window --------------------
+
+btn1 = Button(window, text='Step 1: Open & Decompile APK', command=lambda: open_file()).pack(side=TOP, pady=10)
+btn2 = Button(window, text='Step 2: Obfuscate Smali', command=lambda: obfuscate_smali_file()).pack(side=TOP, pady=10)
+btn3 = Button(window, text='Step 3: Recompile', command=lambda: apk_recompile_sign(file_name)).pack(side=TOP, pady=10)
+optionLabel = Label(window, text="OPTIONAL")
+optionLabel.config(anchor=CENTER)
+optionLabel.pack(side=TOP, pady=10)
+btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
+btn4 = Button(window, text='CLEAR RECOMPILED APK', command=lambda: clearFiles()).pack(side=TOP, pady=10)
+
+progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
+progress.pack(pady=20)
+
+textLog = Text(window, width=40, height=40)
 textLog.pack(side=BOTTOM, fill=BOTH)
 
 window.mainloop()
