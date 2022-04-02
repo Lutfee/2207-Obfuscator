@@ -13,7 +13,7 @@ from tkinter import *
 # from class filedialog
 from tkinter.filedialog import askopenfile
 import tkinter.scrolledtext as st
-from tkinter import Menu
+from tkinter import Menu, messagebox
 from tkinter.ttk import *
 
 # ----------- Global Var -----------
@@ -37,6 +37,7 @@ def open_file():
     global file_name
     global file_path
 
+    progress["value"] = 0
     file = askopenfile(mode='r')
     window.update_idletasks()
     file_name = os.path.basename(file.name)
@@ -362,6 +363,10 @@ def openManual():
     manual_file.close()
     manual_text.pack(fill=BOTH)
 
+def clearWarning():
+    MsgBox = messagebox.askquestion ('Warning','Are you sure you want to clear all old data?\n *Save a copy of the obfuscated apk before clearing*',icon = 'warning')
+    if MsgBox == 'yes':
+       clearFiles()
 
 
 
@@ -373,7 +378,8 @@ optionLabel = Label(window, text="OPTIONAL")
 optionLabel.config(anchor=CENTER)
 optionLabel.pack(side=TOP, pady=10)
 btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
-btn4 = Button(window, text='CLEAR OLD DATA', command=lambda: clearFiles()).pack(side=TOP, pady=10)
+btn4 = Button(window, text='CLEAR OLD DATA', command=lambda: clearWarning()).pack(side=TOP, pady=10)
+
 
 progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
 progress.pack(pady=20)
