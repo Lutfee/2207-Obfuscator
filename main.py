@@ -297,48 +297,35 @@ def pogBar(bar):
         window.update_idletasks()
         time.sleep(0.5)
 
-def class_renaming(inFiles):
-    fileList = []
-    rename_dictionary = {}
-    for root_folder, sub, files in os.walk(inFiles):
-        for file in files:
-            if ("\com\\" in root_folder) and ("\google\\" not in root_folder) and (file != "MainActivity.smali"):
-                inFiles = root_folder + "\\" + file
-                fileList.append(inFiles)
-
-    for file in fileList:
-
-        # This is to Get random name
-        length = random.randint(5, 10)
-        randString = getRandomstring(length)
-
-        # This is to Get the name of the file
-        name = file.split('\\')[-1].split(".smali")[0]
-        rename_dictionary[name] = randString
-
-        # This is to Overwrite data of the file
-        filereads = open(file, "r")
-        updates = filereads.read()
-        for key, value in rename_dictionary.items():
-            updates = updates.replace(key, value)
-            if updates != "":
-                filewrite = open(file, "w")
-                filewrite.write(updates)  #This is to write the class name
-                filewrite.close()
-        filereads.close()
-
-        # This is to get the file path
-        absoulutepath = ''.join(os.path.abspath(file).split(name + ".smali"))
-        newFilename = rename_dictionary.get(name) + '.smali'
-        newabspath = absoulutepath + newFilename
-        os.rename(file, newabspath)  # rename file
-
-def getRandomstring(length):
-    # This is to choose from all lowercase letter
-    letters = string.ascii_lowercase
-    result_string = ''.join(random.choice(letters) for i in range(length))
-    return result_string
-
+#Find all method names and rename them, then use a dictionary to map the old names to the new names, and finally go through the smali files to be altered and rename them.
+def renamingMethods(smaliCodeFile):
+    print(smaliCodeFile)
+    oldNewClassDictionary = {}
+    with open(smaliCodeFile, "r") as fp:
+        lines = fp.readlines()
+        #This is to map the old method into new methods
+        for line in lines:
+            #If a line has the term methods in it but isn't a constructor or onCreate method, it should be renamed.
+            if line.__contains__(".method") and ("constructor" not in line) and ("onCreate" not in line):
+                numOfCharacters = random.randint(1, 10)
+                letters = string.ascii_lowercase
+                RandomMethodNames = (''.join(random.choice(letters) for i in range(numOfCharacters)))
+                lineArrays = line.split(" ")
+                lineArrays[2] = lineArrays[2].split("()")
+                #Continue to use the old name as the key and the new name as the method.
+                oldNewClassDictionary[lineArrays[2][0]] = RandomMethodNames
+            else:
+                continue
+        #print(oldNewClassDict)
+        #print(lines)
+        #run through the file one more time to refactor the smali file method names
+        with open(smaliCodeFile, "w") as f:
+            for line in lines:
+                for methodNames in oldNewClassDictionary.keys():
+                    if methodNames in line:
+                        line = line.replace(methodNames, oldNewClassDictionary[methodNames])
+                        print(line)
+                f.write(line)
 
 def openNewWindow():
     def openOri():
