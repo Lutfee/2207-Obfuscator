@@ -127,8 +127,8 @@ def obfuscate_smali_file():
 
                             # print(e)
                             nocomment(e)
-                            addjunkcode(e)
                             insertIFcondition(e)
+                            addjunkcode(e)
 
 
 
@@ -222,6 +222,16 @@ def addjunkcode(smaliCode):
                 randint = random.randint(3, 5)
                 for i in range(1, randint):
                     lines.insert(iterator + i, saltNOP)
+                iterator += 1
+            if "if-le" in lines[iterator]:
+                check = [int(check) for check in re.findall(r'-?\d+\.?\d*', lines[iterator])]
+                try:
+                    if int(check[2]) > 500:
+                        randint = random.randint(3, 5)
+                        for i in range(1, randint):
+                            lines.insert(iterator + i, saltNOP)
+                except:
+                    pass
                 iterator += 1
             iterator += 1
     f = open(smaliCode, "w")
