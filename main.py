@@ -120,7 +120,7 @@ def obfuscate_smali_file():
                             nocomment(e)
                             addjunkcode(e)
                             insertIFcondition(e)
-                            class_renaming(e)
+                            renamingMethods(e)
     textLog.insert(END, f"{count} Smali file obfuscated!\n")
     progress["value"] += 15
 
@@ -319,13 +319,16 @@ def renamingMethods(smaliCodeFile):
         #print(oldNewClassDict)
         #print(lines)
         #run through the file one more time to refactor the smali file method names
-        with open(smaliCodeFile, "w") as f:
+       with open(smaliCodeFile, "w") as f:
             for line in lines:
                 for methodNames in oldNewClassDictionary.keys():
                     if methodNames in line:
                         line = line.replace(methodNames, oldNewClassDictionary[methodNames])
                         print(line)
-                f.write(line)
+                    else:
+                        continue
+               f.write(line)
+            f.close()
 
 def openNewWindow():
     def openOri():
