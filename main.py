@@ -63,8 +63,6 @@ def open_file():
     textLog.insert(END, "*Step 1 Complete*\n", 'complete')
     textLog.yview(END)
 
-# def multiProc():
-
 
 # decompile apk
 def apk_decompile(apk_file):
@@ -95,8 +93,6 @@ def apk_recompile_sign(apk_file):
     progress["value"] += 40
     textLog.insert(END, "*Step 3 Complete*\n", 'complete')
     textLog.yview(END)
-
-
 
 
 
@@ -140,17 +136,15 @@ def obfuscate_smali_file():
 
 
 def nocomment(inFile):
-
     textLog.yview(END)
     print(inFile)
     open_file = open(inFile, "r")
-    basename = os.path.basename(inFile)
     change = ""
     regex = r'"(.*#.*)"'
 
     for line in open_file:
-        result = re.findall(regex, line)
-        if result:
+        results = re.findall(regex, line)
+        if results:
             change = change + line
         else:
             line = line.split("#", 1)
@@ -160,58 +154,13 @@ def nocomment(inFile):
 
     open_file.close()
     outFile = open(inFile, "w")
-    # outFile = open(f"data_files/{basename}", "w")
     outFile.write(change)
     outFile.close()
 
 
 def addjunkcode(smaliCode):
-
-    flag1 = 0
-    flag2 = 0
-    functionNameFirst = ["important_", "necessary_", "mustHave_", "coolCool_"]
-    functionNameSecond = ["function()", "statement()", "detail()", "coolStuff()"]
     counter = 0
     saltNOP = "nop\n\n"
-    saltFUNCTIONback = ".end method\n"
-    saltFUNCTIONlocal = ".locals 0\n"
-    saltFUNCTIONreturn = "return-void\n"
-    iterator = 0
-
-    # #[ Function Salting ]
-    # with open(smaliCode, "r") as fp:
-    #     lines = fp.readlines()
-    #     while iterator < len(lines):
-    #         if lines[iterator] == ".end method\n":
-    #             saltFUNCTIONfront = "\n.method public " + functionNameFirst[flag1] + functionNameSecond[flag2] + "\n"
-    #             if flag1 != 3 and flag2 != 3:
-    #                 lines.insert(iterator + 1, saltFUNCTIONfront)
-    #                 lines.insert(iterator + 2, saltFUNCTIONlocal)
-    #                 lines.insert(iterator + 3, saltFUNCTIONreturn)
-    #                 lines.insert(iterator + 4, saltFUNCTIONback)
-    #                 iterator += 5
-    #                 flag2 += 1
-    #             elif flag1 != 3 and flag2 == 3:
-    #                 flag1 += 1
-    #                 flag2 = 0
-    #                 lines.insert(iterator + 1, saltFUNCTIONfront)
-    #                 lines.insert(iterator + 2, saltFUNCTIONlocal)
-    #                 lines.insert(iterator + 3, saltFUNCTIONreturn)
-    #                 lines.insert(iterator + 4, saltFUNCTIONback)
-    #                 iterator += 5
-    #             elif flag1 == 3 and flag2 < 3:
-    #                 lines.insert(iterator + 1, saltFUNCTIONfront)
-    #                 lines.insert(iterator + 2, saltFUNCTIONlocal)
-    #                 lines.insert(iterator + 3, saltFUNCTIONreturn)
-    #                 lines.insert(iterator + 4, saltFUNCTIONback)
-    #                 iterator += 5
-    #                 flag2 += 1
-    #             elif flag1 == 3 and flag2 == 3:
-    #                 break
-    #         iterator += 1
-    # f = open(smaliCode, "w")
-    # f.writelines(lines)
-    # f.close()
 
     # reset iterator [ Salt with NOP ]
     iterator = 0
