@@ -32,7 +32,6 @@ window.config(background="light blue")
 # file in read mode and only Python files
 # will be opened
 def open_file():
-
     global content
     global file_name
     global file_path
@@ -45,11 +44,10 @@ def open_file():
     textLog.insert(END, f"{file_name} is loaded\n")
     textLog.yview(END)
 
-
     if file is not None:
         if file_name.__contains__(".apk"):
             print(file)
-            #progress["value"] += 10
+            # progress["value"] += 10
             pogBar(progress)
             window.update_idletasks()
             apk_decompile(file.name)
@@ -96,7 +94,6 @@ def apk_recompile_sign(apk_file):
     textLog.yview(END)
 
 
-
 # -------------------- Obfuscation Part --------------------
 def obfuscate_smali_file():
     global main_smali_file_path
@@ -126,8 +123,6 @@ def obfuscate_smali_file():
                             nocomment(e)
                             insertIFcondition(e)
                             addjunkcode(e)
-
-
 
     textLog.insert(END, f"{count} Smali file obfuscated!\n")
     textLog.yview(END)
@@ -218,12 +213,7 @@ def test():
         print('\t%s' % fname)
 
 
-
-
-
-
 def insertIFcondition(file):
-
     if "array" in str(file):
         return
     with open(file, 'r') as f:
@@ -251,9 +241,10 @@ def insertIFcondition(file):
 
         size = len(data)
         i += 1
-        #data.close()
+        # data.close()
         with open(file, 'w') as f:
             f.writelines(data)
+
 
 def clearFiles():
     textLog.insert(END, "Folders Cleared\n", 'complete')
@@ -282,7 +273,6 @@ def pogBar(bar):
         bar["value"] += i
         window.update_idletasks()
         time.sleep(0.5)
-
 
 
 def openNewWindow():
@@ -348,8 +338,9 @@ def openNewWindow():
         command=openObfuse
     ).grid(row=4, column=0, pady=2, padx=10)
     topFrame.pack(side=TOP)
-    btmFrame.pack(side=BOTTOM,pady=10)
+    btmFrame.pack(side=BOTTOM, pady=10)
     compareWindow.mainloop()
+
 
 def openManual():
     manualWindow = Toplevel(window)
@@ -363,11 +354,13 @@ def openManual():
     manual_file.close()
     manual_text.pack(fill=BOTH)
 
-def clearWarning():
-    MsgBox = messagebox.askquestion ('Warning','Are you sure you want to clear all old data?\n *Save a copy of the obfuscated apk before clearing*',icon = 'warning')
-    if MsgBox == 'yes':
-       clearFiles()
 
+def clearWarning():
+    MsgBox = messagebox.askquestion('Warning',
+                                    'Are you sure you want to clear all old data?\n *Save a copy of the obfuscated apk before clearing*',
+                                    icon='warning')
+    if MsgBox == 'yes':
+        clearFiles()
 
 
 # -------------------- GUI Window --------------------
@@ -379,7 +372,6 @@ optionLabel.config(anchor=CENTER)
 optionLabel.pack(side=TOP, pady=10)
 btn4 = Button(window, text='Step 4: Compare Smali Files', command=lambda: openNewWindow()).pack(side=TOP, pady=10)
 btn4 = Button(window, text='CLEAR OLD DATA', command=lambda: clearWarning()).pack(side=TOP, pady=10)
-
 
 progress = Progressbar(window, orient=HORIZONTAL, length=400, mode="determinate")
 progress.pack(pady=20)
